@@ -3684,6 +3684,7 @@ namespace rs2
 
     void device_model::stop_recording(viewer_model& viewer)
     {
+
         auto saved_to_filename = _recorder->filename();
         _recorder.reset();
         for (auto&& sub_dev_model : subdevices)

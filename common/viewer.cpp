@@ -1918,6 +1918,8 @@ namespace rs2
 
         ImGui::SetNextWindowPos({ panel_width, 0 });
         ImGui::SetNextWindowSize({ window.width() - panel_width, panel_y });
+        
+
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_WindowBg, button_color);
@@ -1927,6 +1929,9 @@ namespace rs2
         ImGui::PushStyleColor(ImGuiCol_Border, black);
 
         int buttons = window.is_fullscreen() ? 4 : 3;
+
+
+        
 
         ImGui::SetCursorPosX(window.width() - panel_width - panel_y * (buttons));
         ImGui::PushStyleColor(ImGuiCol_Text, is_3d_view ? light_grey : light_blue);

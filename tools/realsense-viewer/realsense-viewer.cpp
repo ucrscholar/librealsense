@@ -304,7 +304,7 @@ int main(int argc, const char** argv) try
         return true;
     };
 
-
+    bool is_recording = false;
     // Closing the window
     while (window)
     {
@@ -438,10 +438,111 @@ int main(int argc, const char** argv) try
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_WindowBg, sensor_bg);
 
+
+
         // *********************
         // Creating window menus
         // *********************
         ImGui::Begin("Control Panel", nullptr, flags | ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+        ////////////////////////////////////////
+        // Draw recording icon
+        ////////////////////////////////////////
+        auto pos = ImGui::GetCursorPos();
+        const ImVec2 name_pos = { pos.x, pos.y };
+        ImGui::SetCursorPos(name_pos);
+        auto dev = device_models->begin();
+        bool is_streaming = std::any_of((*dev)->subdevices.begin(), (*dev)->subdevices.end(), [](const std::shared_ptr<subdevice_model>& sm)
+            {
+                return sm->streaming;
+            });
+        
+        int id = 1;
+        bool is_playback_device = false;
+
+        textual_icon button_icon = is_recording ? textual_icons::stop : textual_icons::circle;
+        const float icons_width = 78.0f;
+        const ImVec2 device_panel_icons_size{ icons_width, 50 };
+        std::string recorod_button_name = to_string() << button_icon << "##" << id;
+        auto record_button_color = is_recording ? light_blue : light_grey;
+        ImGui::PushStyleColor(ImGuiCol_Text, record_button_color);
+        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, record_button_color);
+        if (ImGui::ButtonEx(recorod_button_name.c_str(), device_panel_icons_size, (!is_streaming || is_playback_device) ? ImGuiButtonFlags_Disabled : 0))
+        {
+            if (is_recording) //is_recording is changed inside stop/start_recording
+            {
+
+                //stop_recording(viewer);
+                for (auto&& dev_model : *device_models)
+                {
+                    if (dev_model->is_recording)
+                    {
+                        dev_model->stop_recording(viewer_model);
+                        is_recording = dev_model->is_recording;
+                    }
+                    
+                }
+            }
+            else
+            {
+
+                int recording_setting = config_file::instance().get(configurations::record::file_save_mode);
+                std::string path = "";
+                std::string default_path = config_file::instance().get(configurations::record::default_path);
+                if (!ends_with(default_path, "/") && !ends_with(default_path, "\\")) default_path += "/";
+                std::string name = (*dev)->infos[0].second;
+                std::string::iterator end_pos = std::remove(name.begin(), name.end(), ' ');
+                name.erase(end_pos, name.end());
+
+                std::string id = (*dev)->infos[1].second;
+                std::string::iterator end_posid = std::remove(id.begin(), id.end(), ' ');
+                id.erase(end_posid, id.end());
+                std::string default_filename = name + "_" + id + "_" + rs2::get_timestamped_file_name() + ".bag";
+                if (recording_setting == 0)
+                {
+                    path = default_path + default_filename;
+                }
+                else
+                {
+                    if (const char* ret = file_dialog_open(file_dialog_mode::save_file, "ROS-bag\0*.bag\0",
+                        default_path.c_str(), default_filename.c_str()))
+                    {
+                        path = ret;
+                        if (!ends_with(to_lower(path), ".bag")) path += ".bag";
+                    }
+                }
+
+                if (path != "") //start_recording(path, error_message);
+                {
+                    for (auto&& dev_model : *device_models)
+                    {
+                        bool is_streaming = std::any_of(dev_model->subdevices.begin(), dev_model->subdevices.end(), [](const std::shared_ptr<subdevice_model>& sm)
+                            {
+                                return sm->streaming;
+                            });
+                        if (is_streaming)
+                        {
+                            dev_model->start_recording(path, error_message);
+                            is_recording = dev_model->is_recording;
+                        }
+                        
+                    }
+                }
+            }
+        }
+        if (ImGui::IsItemHovered())
+        {
+            std::string record_button_hover_text = (!is_streaming ? "Start streaming to enable recording" : (is_recording ? "Stop Recording" : "Start Recording"));
+            ImGui::SetTooltip("%s", record_button_hover_text.c_str());
+            if (is_streaming) window.link_hovered();
+        }
+
+        ImGui::PopStyleColor(2);
+        ImGui::SameLine();
+
+        const ImVec2 name_pos2 = { pos.x, pos.y+50 };
+        ImGui::SetCursorPos(name_pos2);
+        ////////////////////////////////////////
 
         if (device_models->size() > 0)
         {
