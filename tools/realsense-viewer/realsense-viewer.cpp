@@ -244,12 +244,14 @@ bool refresh_devices(std::mutex& m,
 
 int main(int argc, const char** argv) try
 {
+
 	rs2::log_to_console(RS2_LOG_SEVERITY_WARN);
 
-	//ux_window window("Intel RealSense Viewer");
-	ux_window window("HandWash Net");
-	// Create RealSense Context
 	context ctx;
+	//ux_window window("Intel RealSense Viewer");
+	ux_window window("HandWash Net", ctx);
+	// Create RealSense Context
+	
 	device_changes devices_connection_changes(ctx);
 	std::vector<std::pair<std::string, std::string>> device_names;
 
@@ -259,8 +261,8 @@ int main(int argc, const char** argv) try
 	std::shared_ptr<device_models_list> device_models = std::make_shared<device_models_list>();
 	device_model* device_to_remove = nullptr;
 
-	viewer_model viewer_model;
-	viewer_model.ctx = ctx;
+	viewer_model viewer_model(ctx);
+	//viewer_model.ctx = ctx;
 
 	std::vector<device> connected_devs;
 	std::mutex m;
@@ -645,6 +647,7 @@ int main(int argc, const char** argv) try
 		}
 
 	return EXIT_SUCCESS;
+
 }
 catch (const error & e)
 {
