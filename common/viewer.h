@@ -112,6 +112,8 @@ namespace rs2
 
         void show_top_bar(ux_window& window, const rect& viewer_rect, const device_models_list& devices);
 
+        void show_tag_bar(ux_window& window, const rect& viewer_rect, const device_models_list& devices);
+
         void render_3d_view(const rect& view_rect, 
             std::shared_ptr<texture_buffer> texture, rs2::points points, ImFont *font1);
 
@@ -134,6 +136,8 @@ namespace rs2
         bool is_3d_view = false;
         bool paused = false;
         bool metric_system = true;
+
+        std::map<int, std::map<std::string, int > > m_tag = { { 0, {{"start",0 }} }, { 1,  {{"end",0 }} } };
 
         enum export_type
         {

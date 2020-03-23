@@ -91,12 +91,12 @@ void add_playback_device(context& ctx, device_models_list& device_models,
 				});
 		}
 	}
-	catch (const error & e)
+	catch (const error& e)
 	{
 		error_message = to_string() << "Failed to load file " << file << ". Reason: " << error_to_string(e);
 		failed = true;
 	}
-	catch (const std::exception & e)
+	catch (const std::exception& e)
 	{
 		error_message = to_string() << "Failed to load file " << file << ". Reason: " << e.what();
 		failed = true;
@@ -227,11 +227,11 @@ bool refresh_devices(std::mutex& m,
 		}
 		initial_refresh = false;
 	}
-	catch (const error & e)
+	catch (const error& e)
 	{
 		error_message = error_to_string(e);
 	}
-	catch (const std::exception & e)
+	catch (const std::exception& e)
 	{
 		error_message = e.what();
 	}
@@ -251,7 +251,7 @@ int main(int argc, const char** argv) try
 	//ux_window window("Intel RealSense Viewer");
 	ux_window window("HandWash Net", ctx);
 	// Create RealSense Context
-	
+
 	device_changes devices_connection_changes(ctx);
 	std::vector<std::pair<std::string, std::string>> device_names;
 
@@ -289,11 +289,11 @@ int main(int argc, const char** argv) try
 
 			add_playback_device(ctx, *device_models, error_message, viewer_model, arg);
 		}
-		catch (const rs2::error & e)
+		catch (const rs2::error& e)
 		{
 			error_message = error_to_string(e);
 		}
-		catch (const std::exception & e)
+		catch (const std::exception& e)
 		{
 			error_message = e.what();
 		}
@@ -374,11 +374,11 @@ int main(int argc, const char** argv) try
 						auto dev = connected_devs[i];
 						device_models->emplace_back(new device_model(dev, error_message, viewer_model));
 					}
-					catch (const error & e)
+					catch (const error& e)
 					{
 						error_message = error_to_string(e);
 					}
-					catch (const std::exception & e)
+					catch (const std::exception& e)
 					{
 						error_message = e.what();
 					}
@@ -430,6 +430,7 @@ int main(int argc, const char** argv) try
 
 		viewer_model.show_top_bar(window, viewer_rect, *device_models);
 
+
 		viewer_model.show_event_log(window.get_font(), viewer_model.panel_width,
 			window.height() - (viewer_model.is_output_collapsed ? viewer_model.default_log_h : 20),
 			window.width() - viewer_model.panel_width, viewer_model.default_log_h);
@@ -446,107 +447,109 @@ int main(int argc, const char** argv) try
 		// Creating window menus
 		// *********************
 		ImGui::Begin("Control Panel", nullptr, flags | ImGuiWindowFlags_AlwaysVerticalScrollbar);
-
-		////////////////////////////////////////
-		// Draw recording icon
-		////////////////////////////////////////
-		auto pos = ImGui::GetCursorPos();
-		const ImVec2 name_pos = { pos.x, pos.y };
-		ImGui::SetCursorPos(name_pos);
-		auto dev = device_models->begin();
-		bool is_streaming = false;
-		if (dev != device_models->end())
-			is_streaming = std::any_of((*dev)->subdevices.begin(), (*dev)->subdevices.end(), [](const std::shared_ptr<subdevice_model>& sm)
-				{
-					return sm->streaming;
-				});
-
-		int id = 1;
-		bool is_playback_device = false;
-
-		textual_icon button_icon = is_recording ? textual_icons::stop : textual_icons::circle;
-		const float icons_width = 78.0f;
-		const ImVec2 device_panel_icons_size{ icons_width, 50 };
-		std::string recorod_button_name = to_string() << button_icon << "##" << id;
-		auto record_button_color = is_recording ? light_blue : light_grey;
-		ImGui::PushStyleColor(ImGuiCol_Text, record_button_color);
-		ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, record_button_color);
-		if (ImGui::ButtonEx(recorod_button_name.c_str(), device_panel_icons_size, (!is_streaming || is_playback_device) ? ImGuiButtonFlags_Disabled : 0))
 		{
-			if (is_recording) //is_recording is changed inside stop/start_recording
-			{
-
-				//stop_recording(viewer);
-				for (auto&& dev_model : *device_models)
-				{
-					if (dev_model->is_recording)
+			////////////////////////////////////////
+			// Draw recording icon
+			////////////////////////////////////////
+			auto pos = ImGui::GetCursorPos();
+			const ImVec2 name_pos = { pos.x, pos.y };
+			ImGui::SetCursorPos(name_pos);
+			auto dev = device_models->begin();
+			bool is_streaming = false;
+			if (dev != device_models->end())
+				is_streaming = std::any_of((*dev)->subdevices.begin(), (*dev)->subdevices.end(), [](const std::shared_ptr<subdevice_model>& sm)
 					{
-						dev_model->stop_recording(viewer_model);
-						is_recording = dev_model->is_recording;
-					}
+						return sm->streaming;
+					});
 
-				}
-			}
-			else
+			int id = 1;
+			bool is_playback_device = false;
+
+			textual_icon button_icon = is_recording ? textual_icons::stop : textual_icons::circle;
+			const float icons_width = 78.0f;
+			const ImVec2 device_panel_icons_size{ icons_width, 50 };
+			std::string recorod_button_name = to_string() << button_icon << "##" << id;
+			auto record_button_color = is_recording ? light_blue : light_grey;
+			ImGui::PushStyleColor(ImGuiCol_Text, record_button_color);
+			ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, record_button_color);
+			if (ImGui::ButtonEx(recorod_button_name.c_str(), device_panel_icons_size, (!is_streaming || is_playback_device) ? ImGuiButtonFlags_Disabled : 0))
 			{
-
-				int recording_setting = config_file::instance().get(configurations::record::file_save_mode);
-				std::string path = "";
-				std::string default_path = config_file::instance().get(configurations::record::default_path);
-				if (!ends_with(default_path, "/") && !ends_with(default_path, "\\")) default_path += "/";
-				std::string name = (*dev)->infos[0].second;
-				std::string::iterator end_pos = std::remove(name.begin(), name.end(), ' ');
-				name.erase(end_pos, name.end());
-
-				std::string id = (*dev)->infos[1].second;
-				std::string::iterator end_posid = std::remove(id.begin(), id.end(), ' ');
-				id.erase(end_posid, id.end());
-				std::string default_filename = name + "_" + id + "_" + rs2::get_timestamped_file_name() + ".bag";
-				if (recording_setting == 0)
+				if (is_recording) //is_recording is changed inside stop/start_recording
 				{
-					path = default_path + default_filename;
-				}
-				else
-				{
-					if (const char* ret = file_dialog_open(file_dialog_mode::save_file, "ROS-bag\0*.bag\0",
-						default_path.c_str(), default_filename.c_str()))
-					{
-						path = ret;
-						if (!ends_with(to_lower(path), ".bag")) path += ".bag";
-					}
-				}
 
-				if (path != "") //start_recording(path, error_message);
-				{
+					//stop_recording(viewer);
 					for (auto&& dev_model : *device_models)
 					{
-						bool is_streaming = std::any_of(dev_model->subdevices.begin(), dev_model->subdevices.end(), [](const std::shared_ptr<subdevice_model>& sm)
-							{
-								return sm->streaming;
-							});
-						if (is_streaming)
+						if (dev_model->is_recording)
 						{
-							dev_model->start_recording(path, error_message);
+							dev_model->stop_recording(viewer_model);
 							is_recording = dev_model->is_recording;
 						}
 
 					}
 				}
+				else
+				{
+
+					int recording_setting = config_file::instance().get(configurations::record::file_save_mode);
+					std::string path = "";
+					std::string default_path = config_file::instance().get(configurations::record::default_path);
+					if (!ends_with(default_path, "/") && !ends_with(default_path, "\\")) default_path += "/";
+					std::string name = (*dev)->infos[0].second;
+					std::string::iterator end_pos = std::remove(name.begin(), name.end(), ' ');
+					name.erase(end_pos, name.end());
+
+					std::string id = (*dev)->infos[1].second;
+					std::string::iterator end_posid = std::remove(id.begin(), id.end(), ' ');
+					id.erase(end_posid, id.end());
+					std::string default_filename = name + "_" + id + "_" + rs2::get_timestamped_file_name() + ".bag";
+					if (recording_setting == 0)
+					{
+						path = default_path + default_filename;
+					}
+					else
+					{
+						if (const char* ret = file_dialog_open(file_dialog_mode::save_file, "ROS-bag\0*.bag\0",
+							default_path.c_str(), default_filename.c_str()))
+						{
+							path = ret;
+							if (!ends_with(to_lower(path), ".bag")) path += ".bag";
+						}
+					}
+
+					if (path != "") //start_recording(path, error_message);
+					{
+						for (auto&& dev_model : *device_models)
+						{
+							bool is_streaming = std::any_of(dev_model->subdevices.begin(), dev_model->subdevices.end(), [](const std::shared_ptr<subdevice_model>& sm)
+								{
+									return sm->streaming;
+								});
+							if (is_streaming)
+							{
+								dev_model->start_recording(path, error_message);
+								is_recording = dev_model->is_recording;
+							}
+
+						}
+					}
+				}
 			}
-		}
-		if (ImGui::IsItemHovered())
-		{
-			std::string record_button_hover_text = (!is_streaming ? "Start streaming to enable recording" : (is_recording ? "Stop Recording" : "Start Recording"));
-			ImGui::SetTooltip("%s", record_button_hover_text.c_str());
-			if (is_streaming) window.link_hovered();
-		}
+			if (ImGui::IsItemHovered())
+			{
+				std::string record_button_hover_text = (!is_streaming ? "Start streaming to enable recording" : (is_recording ? "Stop Recording" : "Start Recording"));
+				ImGui::SetTooltip("%s", record_button_hover_text.c_str());
+				if (is_streaming) window.link_hovered();
+			}
 
-		ImGui::PopStyleColor(2);
-		ImGui::SameLine();
+			ImGui::PopStyleColor(2);
+			ImGui::SameLine();
 
-		const ImVec2 name_pos2 = { pos.x, pos.y + 50 };
-		ImGui::SetCursorPos(name_pos2);
-		///////////////////////////////////////
+			const ImVec2 name_pos2 = { pos.x, pos.y+50 };
+			ImGui::SetCursorPos(name_pos2);
+			///////////////////////////////////////
+		}
+		
 
 		if (device_models->size() > 0)
 		{
@@ -588,11 +591,11 @@ int main(int argc, const char** argv) try
 				{
 					lambda();
 				}
-				catch (const error & e)
+				catch (const error& e)
 				{
 					error_message = error_to_string(e);
 				}
-				catch (const std::exception & e)
+				catch (const std::exception& e)
 				{
 					error_message = e.what();
 				}
@@ -649,12 +652,12 @@ int main(int argc, const char** argv) try
 	return EXIT_SUCCESS;
 
 }
-catch (const error & e)
+catch (const error& e)
 {
 	std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
 	return EXIT_FAILURE;
 }
-catch (const std::exception & e)
+catch (const std::exception& e)
 {
 	std::cerr << e.what() << std::endl;
 	return EXIT_FAILURE;
