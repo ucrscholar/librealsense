@@ -1922,6 +1922,7 @@ namespace rs2
 
 
 
+
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 				ImGui::PushStyleColor(ImGuiCol_WindowBg, button_color);
 				ImGui::Begin("Toolbar Panel", nullptr, flags);
@@ -1931,7 +1932,7 @@ namespace rs2
 
 				int buttons = window.is_fullscreen() ? 4 : 3;
 
-				
+
 
 				ImGui::SetCursorPosX(window.width() - panel_width - panel_y * (buttons));
 				ImGui::PushStyleColor(ImGuiCol_Text, is_3d_view ? light_grey : light_blue);
@@ -1977,6 +1978,18 @@ namespace rs2
 
 				///////////////////////////////////
 				//Tag control 
+				if (devices.size() > 0)
+				{
+					auto p = devices[0]->dev.as<playback>();
+
+					auto playback_status = p.current_status();
+					if (playback_status == RS2_PLAYBACK_STATUS_PAUSED)
+					{
+						current_pos = p.get_position();
+
+					}
+				}
+
 				int position = 20;
 				for (auto& tag : m_tag)
 					for (auto& label : tag.second)
@@ -1984,25 +1997,53 @@ namespace rs2
 						ImGui::SetCursorPosY(0);
 						ImGui::SetCursorPosX(position);
 						ImGui::PushStyleColor(ImGuiCol_Text, is_3d_view ? light_grey : light_blue);
-						ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, is_3d_view ? light_grey : light_blue); 
+						ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, is_3d_view ? light_grey : light_blue);
 
-						if (ImGui::Button((label.first+"("+std::to_string(tag.first) + ")").c_str(), { panel_y*2, panel_y / 2 }) || ImGui::IsKeyPressed('0' + tag.first) && ImGui::IsKeyPressed(GLFW_KEY_LEFT_CONTROL))
+						if (ImGui::Button((label.first + "(" + std::to_string(tag.first) + ")").c_str(), { panel_y * 2, panel_y / 2 }) || ImGui::IsKeyPressed('0' + tag.first) && ImGui::IsKeyPressed(GLFW_KEY_LEFT_CONTROL))
 						{
-							is_3d_view = false;
-							config_file::instance().set(configurations::viewer::is_3d_view, is_3d_view);
-						}											
+							label.second = current_pos;
+						}
 						ImGui::PopStyleColor(2);
-						
-						ImGui::SetCursorPosX(position);	
+
+						ImGui::SetCursorPosX(position);
 						ImGui::PushStyleColor(ImGuiCol_Text, is_3d_view ? light_grey : green);
 						ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, is_3d_view ? light_grey : green);
 						ImGui::Text(std::to_string(label.second).c_str());
 						ImGui::PopStyleColor(2);
 
 						ImGui::SameLine();
-						position += panel_y * 2;
+						position += panel_y * 3;
 					}
 
+				ImGui::SetCursorPosY(0);
+				ImGui::SetCursorPosX(position);
+				ImGui::PushStyleColor(ImGuiCol_Text, is_3d_view ? light_grey : light_blue);
+				ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, is_3d_view ? light_grey : light_blue);
+				if (ImGui::Button("Save(0)", { panel_y*2, panel_y }) || (ImGui::IsKeyPressed('0') && ImGui::IsKeyPressed(GLFW_KEY_LEFT_CONTROL)))
+				{
+					if (devices.size() > 0)
+					{
+						auto p = devices[0]->dev.as<playback>();
+
+						auto name = p.file_name();
+						name.replace(name.length() - 3, 3, "txt");
+						std::ofstream myfile;
+						std::stringstream content;
+						myfile.open(name);
+						for (auto& tag : m_tag)
+							for (auto& label : tag.second)
+							{
+								content << label.first << "," << label.second << ",";
+							}
+						std::string content_s = content.str();
+						content_s.replace(content_s.length() - 1, 1, "");
+						myfile << content_s<<"\n";
+						myfile.close();
+					}
+
+				}
+				ImGui::PopStyleColor(2);
+				ImGui::SameLine();
 				///////////////////////////////////
 
 				if (window.is_fullscreen())

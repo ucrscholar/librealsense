@@ -137,7 +137,7 @@ namespace rs2
         bool paused = false;
         bool metric_system = true;
 
-        std::map<int, std::map<std::string, int > > m_tag = { { 0, {{"start",0 }} }, { 1,  {{"end",0 }} } };
+        std::map<int, std::map<std::string, uint64_t > > m_tag = { { 1, {{"start",0 }} }, { 2,  {{"end",0 }} } };
 
         enum export_type
         {
@@ -174,6 +174,8 @@ namespace rs2
         press_button_model pose_info_object_button{ u8"\uf05a", u8"\uf05a",  "Show pose stream info overlay", "Hide pose stream info overlay", false };
 
         bool show_pose_info_3d = false;
+
+        uint64_t current_pos = 0;
 
     private:
         void check_permissions();
