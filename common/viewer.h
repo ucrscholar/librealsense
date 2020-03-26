@@ -137,7 +137,7 @@ namespace rs2
         bool paused = false;
         bool metric_system = true;
 
-        std::map<int, std::map<std::string, uint64_t > > m_tag = { { 1, {{"start",0 }} }, { 2,  {{"end",0 }} } };
+        std::map<int, std::map<std::string, uint64_t > > m_tag;// = { { 1, {{"start1",0 }} }, { 2,  {{"end1",0 }} }, { 3,  {{"end",0 }} } };
 
         enum export_type
         {

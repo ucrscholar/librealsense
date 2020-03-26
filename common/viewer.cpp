@@ -783,6 +783,37 @@ namespace rs2
 				check_permissions();
 				export_model exp_model = export_model::make_exporter("PLY", ".ply", "Polygon File Format (PLY)\0*.ply\0");
 				exporters.insert(std::pair<export_type, export_model>(export_type::ply, exp_model));
+
+				std::string line;
+				std::ifstream myfile("C:/Users/sheng/Documents/GitHub/iLab/Debug/config.ini");
+				if (myfile.is_open())
+				{
+					int i = 1;
+					while (getline(myfile, line))
+					{
+						std::stringstream   linestream(line);
+						std::string         data;
+						int         val1;
+						std::string         val2;
+						std::string         val3;
+						std::string         val4;
+
+						// If you have truly tab delimited data use getline() with third parameter.
+						// If your data is just white space separated data
+						// then the operator >> will do (it reads a space separated word into a string).
+						//std::getline(linestream, data, ',');  // read up-to the first tab (discard tab).
+						// Read the integers using the operator >>
+						linestream >> val1 >> val2 >> val3 >> val4;
+						//std::map<int, std::map<std::string, uint64_t > > m_tag
+						m_tag[i][val2+val4] =0;
+						m_tag[i][val2+val3] = 0;
+
+						i++;
+						
+						
+					}
+					myfile.close();
+				}
 			}
 
 			void viewer_model::gc_streams()
@@ -1991,7 +2022,11 @@ namespace rs2
 				}
 
 				int position = 20;
+				char i = 1;
 				for (auto& tag : m_tag)
+				{
+					std::cout << "tag";
+
 					for (auto& label : tag.second)
 					{
 						ImGui::SetCursorPosY(0);
@@ -1999,21 +2034,27 @@ namespace rs2
 						ImGui::PushStyleColor(ImGuiCol_Text, is_3d_view ? light_grey : light_blue);
 						ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, is_3d_view ? light_grey : light_blue);
 
-						if (ImGui::Button((label.first + "(" + std::to_string(tag.first) + ")").c_str(), { panel_y * 2, panel_y / 2 }) || ImGui::IsKeyPressed('0' + tag.first) && ImGui::IsKeyPressed(GLFW_KEY_LEFT_CONTROL))
+						if (ImGui::Button((label.first + "_" + std::to_string(i)).c_str(), { 70 , panel_y / 2 }) || ImGui::IsKeyPressed('0' + i) && ImGui::IsKeyPressed(GLFW_KEY_LEFT_CONTROL))
 						{
 							label.second = current_pos;
+							not_model.add_log(to_string() <<label.first + "_" + std::to_string(i) <<" setted: "<< current_pos);
 						}
 						ImGui::PopStyleColor(2);
 
 						ImGui::SetCursorPosX(position);
 						ImGui::PushStyleColor(ImGuiCol_Text, is_3d_view ? light_grey : green);
 						ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, is_3d_view ? light_grey : green);
-						ImGui::Text(std::to_string(label.second).c_str());
+						//ImGui::Text(std::to_string(label.second).c_str());
+						if(label.second>0)
+							ImGui::Text("OK");
 						ImGui::PopStyleColor(2);
 
 						ImGui::SameLine();
-						position += panel_y * 3;
+						position += panel_y *1.5;
+						i++;
 					}
+				}
+
 
 				ImGui::SetCursorPosY(0);
 				ImGui::SetCursorPosX(position);
@@ -2039,6 +2080,8 @@ namespace rs2
 						content_s.replace(content_s.length() - 1, 1, "");
 						myfile << content_s<<"\n";
 						myfile.close();
+
+						not_model.add_log(to_string() << name << " saved");
 					}
 
 				}
