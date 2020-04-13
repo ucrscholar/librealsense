@@ -64,6 +64,7 @@ namespace rs2 {
 
             public:
                 virtual void convert(rs2::frameset& frameset) = 0;
+                virtual void convert(rs2::frameset& frameset, unsigned long long& frameNumber) {};
                 virtual std::string name() const = 0;
 
                 virtual std::string get_statistics()

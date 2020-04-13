@@ -805,8 +805,8 @@ namespace rs2
 						// Read the integers using the operator >>
 						linestream >> val1 >> val2 >> val3 >> val4;
 						//std::map<int, std::map<std::string, uint64_t > > m_tag
-						m_tag[i][val2+val4] =0;
-						m_tag[i][val2+val3] = 0;
+						m_tag[i][val2+val3] =0;
+						m_tag[i][val2+val4] = 0;
 
 						i++;
 						
